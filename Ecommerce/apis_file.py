@@ -1,6 +1,7 @@
 from django.urls import path, include
-
+"""dfasdfsdfsda"""
 urlpatterns = [
+
     path('products/', include("products.api.urls")),
     path('categories/', include("products.api.urls")),
     path('user/', include("users.api.urls")),
