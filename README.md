@@ -57,5 +57,7 @@ python manage.py createsuperuser
 ```bash
 pyhton manage.py runserver
 ```
+## Notes
 
+Project database schema [here](https://fv2-3.failiem.lv/down.php?i=b5d7f23tf&view) 
 
