@@ -6,7 +6,7 @@ E-commerce is an internship project at [SARY](https://sary.com/)
 
 1- clone this repo 
 ```bash
-https://github.com/mofahmi99/e_commerce.git
+git clone https://github.com/mofahmi99/e_commerce.git
 ```
 2- create virtual env 
 ```bash
