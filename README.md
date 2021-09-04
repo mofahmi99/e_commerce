@@ -15,7 +15,7 @@ python3 -m venv env
 ```
 3-activate virtiual env
 ```bash  
-source env env/bin/activate
+source env/bin/activate
 ```
 4-install requirements 
 ``` bash
