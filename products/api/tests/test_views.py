@@ -40,8 +40,7 @@ class ProductList(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['result'][0]['id'], 1)
-        self.assertEqual(response.data['result'][0]['created_at'], '04.09.2021 02:04')
-        self.assertEqual(response.data['result'][0]['updated_at'], '04.09.2021 02:04')
+        self.assertEqual(response.data['result'][0]['categories'][0]['title'], 'food')
         self.assertEqual(response.data['result'][0]['price'], "190.00 SAR")
         self.assertEqual(response.data["result"][0]["is_available"], True)
         self.assertEqual(response.data['result'][0]['branch'][0], 'talkha')
