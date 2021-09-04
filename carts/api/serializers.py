@@ -54,8 +54,13 @@ class CartItemSerializer(serializers.ModelSerializer):
         city_id = user_city.city_id
         # search for branch items
         branch_items = BranchItem.objects.filter(item_id=item_id, branch__city_id=city_id, is_available=True)
-        # send branch items to calculate_price function to get the best price (min)
-        best_price = calculate_price(branch_items)
+        # checks if there is no item available in user current address raise an exception
+        if branch_items:
+            # send branch items to calculate_price function to get the best price (min)
+            best_price = calculate_price(branch_items)
+        else:
+            raise serializers.ValidationError("Sorry, this item is not available in your address")
+
         # check if the item already added to the cart before it it does then its quantity will be updated
         cart_item_exist = CartItem.objects.filter(cart_id=cart.id, item_id=item_id).exists()
         if cart_item_exist:

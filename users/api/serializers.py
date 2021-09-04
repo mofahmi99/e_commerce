@@ -34,9 +34,9 @@ class UserLoginSerializer(serializers.ModelSerializer):
         """
         authenticate user data to log to the system
         """
-        username = data.get("user_name", None)
+        user_name = data.get("user_name")
         password = data.get("password")
-        user = authenticate(user_name=username, password=password)
+        user = authenticate(user_name=user_name, password=password)
         if user is None:
             raise serializers.ValidationError(
                 'user not found'
