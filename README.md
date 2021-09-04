@@ -42,7 +42,7 @@ PASSWORD : your_email_password
 ```
 6- run this command 
 ``` bash
-pyhton manage.py makemigrations 
+python manage.py makemigrations 
 ```
 
 7 - run this command
@@ -55,7 +55,7 @@ python manage.py createsuperuser
 ```
 9- run this command
 ```bash
-pyhton manage.py runserver
+python manage.py runserver
 ```
 ## Notes
 
