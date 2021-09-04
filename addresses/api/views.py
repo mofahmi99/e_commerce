@@ -16,7 +16,7 @@ class AddressApi(GenericViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response({"result": serializer.data, "message": "Done", "status": True},
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_201_CREATED)
         return Response({"result": serializer.errors, "message": "Done", "status": False},
                         status=status.HTTP_400_BAD_REQUEST)
 
