@@ -20,7 +20,7 @@ class Branch(Timestamps):
     store branch data (name-city)
     """
     name = models.CharField(max_length=255)
-    city = models.ForeignKey('City', on_delete=models.CASCADE, default=1)
+    city = models.ForeignKey('City', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = "Branches"
