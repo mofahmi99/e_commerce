@@ -59,3 +59,14 @@ class Item(Timestamps):
         """
         available_items = [branch_item for branch_item in branch_items if branch_item.is_available]
         return bool(available_items and self.is_available)
+
+    def get_best_price_branch(self, branch_items):
+        """
+        to find the branch of an item we must first calculate min price then we find the branch item that its price
+        is equal to the min price
+        """
+        available_prices = [branch_item.price for branch_item in branch_items if branch_item.is_available]
+        min_price = min(available_prices)
+        branch_name = [branch_item.branch.name for branch_item in branch_items if
+                       branch_item.price is min_price]
+        return branch_name
