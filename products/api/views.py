@@ -1,6 +1,7 @@
 from django.db.models import Prefetch
 from django_filters.rest_framework import backends
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -41,19 +42,15 @@ class ProductViewSet(viewsets.ModelViewSet):
                                              is_available=True, categories__id=category_id) \
             .prefetch_related(
             Prefetch('branchitem_set',
-                     queryset=BranchItem.objects.filter(branch__city_id=city_id)))
-        # remove duplicated items
-        items_queryset = items_queryset.distinct('id')
+                     queryset=BranchItem.objects.filter(branch__city_id=city_id))).distinct('id')
 
-        # checks it the returned items_queryset is empty or not if empty send it serializer directly to avoid paginator errors else send to paginator first
         if items_queryset:
-            queryset = self.paginate_queryset(self.filter_queryset(items_queryset))
+            queryset = self.paginate_queryset(items_queryset)
             serializer = ProductBranchItemSerializer(queryset, many=True)
             return self.paginator.get_paginated_response(serializer.data)
         else:
-            serializer = ProductBranchItemSerializer(items_queryset, many=True)
-            return Response({"result": serializer.data, "message": "Done", "status": True},
-                            status=status.HTTP_201_CREATED)
+            return Response({ "message": "no items found", "status": False},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         """
@@ -64,7 +61,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response({"result": serializer.data, "message": "Done", "status": True},
-                            status=status.HTTP_201_CREATED)
+                            status=status.HTTP_200_OK)
         return Response({"message": serializer.errors, "status": False}, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, *args, **kwargs):
@@ -82,15 +79,15 @@ class ProductViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         city_id = user_address.city_id
         # return a specific available item with its branch items in user city
-        item_queryset = Item.objects.filter(id=item_id, branchitem__branch__city_id=city_id,
-                                            is_available=True) \
-            .prefetch_related(
+        item_object = Item.objects.filter(id=item_id, is_available=True).prefetch_related(
             Prefetch('branchitem_set',
-                     queryset=BranchItem.objects.filter(item__id=item_id, branch__city_id=city_id)))
-        # remove duplicated items
-        item_queryset = item_queryset.distinct("id")
-        serializer = ProductSerializer(item_queryset, many=True)
-        return Response({"result": serializer.data, "message": "Done", "status": True}, status=status.HTTP_200_OK)
+                     queryset=BranchItem.objects.filter(item__id=item_id, branch__city_id=city_id))).first()
+        if item_object and item_object.branchitem_set.all():
+
+            serializer = ProductSerializer(item_object)
+            return Response({"result": serializer.data, "message": "Done", "status": True}, status=status.HTTP_200_OK)
+        return Response({"result": None, "message": "no item found", "status": False},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
         """
@@ -115,12 +112,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response({"message": "Done", "status": True}, status=status.HTTP_200_OK)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = CustomPagination
     permission_classes = (IsAuthenticated,)
 
-    def list(self, request, *args, **kwargs):
+    @action(methods=['get'], detail=False)
+    def list_categories(self, request):
         user_id = request.user.id
         address_id = request.query_params["address_id"]
         try:
