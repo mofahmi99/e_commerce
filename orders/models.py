@@ -8,12 +8,12 @@ class Order(Timestamps):
     """
     order model to hold user order data such as total and delivery date
     """
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='user_order', default=1)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='user_order')
     order_total = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     grand_total = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True, default=timezone.now().date())
     shipping_fee = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
-    address = models.ForeignKey("addresses.Address", on_delete=models.CASCADE, default=4)
+    address = models.ForeignKey("addresses.Address", on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.id)
