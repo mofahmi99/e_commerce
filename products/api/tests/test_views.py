@@ -1,5 +1,5 @@
 import json
-
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -22,7 +22,8 @@ class ProductList(TestCase):
         User.objects.create_token(user)
         address = Address.objects.create(location=Point(0.0, 0.0), address_info='talkha-mansora', city=city, user=user)
         category = Category.objects.create(title='food')
-        item = Item.objects.create(price=210, is_available=True, title='gum', description='mango flavored gum')
+        item = Item.objects.create(price=210, is_available=True, title='gum', description='mango flavored gum',
+                                   created_at='04.09.2021 01:47', updated_at='04.09.2021 01:47')
         item.categories.set([category])
         item.save()
         branch = Branch.objects.create(name='talkha', city=city)
@@ -36,31 +37,20 @@ class ProductList(TestCase):
             'HTTP_AUTHORIZATION': 'Bearer ' + user_token
         }
         response = self.client.get(url, format='json', **headers)
-        # print(response.data)
-        # test_response = {
-        #     "result": {
-        #         "id": response.data['result'][0]['id'],
-        #         "created_at": response.data['result'][0]['created_at'],
-        #         "updated_at": response.data['result'][0]['updated_at'],
-        #         "price": response.data['result'][0]['price'],
-        #         "is_available": response.data['result'][0]['is_available'],
-        #         "branch": {
-        #             "branch_id": response.data['result'][0]['branch']['branch_id'],
-        #             "branch__name": response.data['result'][0]['branch']['branch__name'],
-        #         },
-        #
-        #         "categories": [
-        #             response.data['result'][0]['categories'][0]
-        #         ],
-        #         "title": response.data['result'][0]['title'],
-        #         "image": response.data['result'][0]['image'],
-        #         "description": response.data['result'][0]['description']
-        #     },
-        #     "message": response.data['message'],
-        #     "status": response.data['status'],
-        # }
-        # print(test_response)
-        # self.assertDictEqual(response.json(), test_response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['result'][0]['id'], 1)
+        self.assertEqual(response.data['result'][0]['created_at'], '04.09.2021 02:04')
+        self.assertEqual(response.data['result'][0]['updated_at'], '04.09.2021 02:04')
+        self.assertEqual(response.data['result'][0]['price'], "190.00 SAR")
+        self.assertEqual(response.data["result"][0]["is_available"], True)
+        self.assertEqual(response.data['result'][0]['branch'][0], 'talkha')
+        self.assertEqual(response.data['result'][0]['title'], 'gum')
+        self.assertEqual(response.data['result'][0]['image'], None)
+        self.assertEqual(response.data['result'][0]['description'], "mango flavored gum")
+        self.assertEqual(response.data["status"], True)
+        self.assertEqual(response.data['message'], "Retrieved Successfully")
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_product_list_api_wrong_address(self):
@@ -71,4 +61,18 @@ class ProductList(TestCase):
             'HTTP_AUTHORIZATION': 'Bearer ' + user_token
         }
         response = self.client.get(url, format='json', **headers)
+        self.assertEqual(response.data["status"], False)
+        self.assertEqual(response.data['message'], "Wrong Address")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_product_list_api_wrong_category(self):
+        url = "/api/products/product/?address_id=1&category_id=10"
+
+        user_token = User.objects.first().token
+        headers = {
+            'HTTP_AUTHORIZATION': 'Bearer ' + user_token
+        }
+        response = self.client.get(url, format='json', **headers)
+        self.assertEqual(response.data["status"], False)
+        self.assertEqual(response.data['message'], "no items found")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
