@@ -15,8 +15,9 @@ class UserTestApi(TestCase):
         create user in temp database to test the apis
         """
         city = City.objects.create(name='mansoura')
-        address = Address.objects.create(location=Point(0.0, 0.0), address_info='talkha-mansora', city=city)
-        User.objects.create(user_name='omar', password=make_password('123456'), address=address)
+        user = User.objects.create(user_name='omar', password=make_password('123456'))
+        User.objects.create_token(user)
+        address = Address.objects.create(location=Point(0.0, 0.0), address_info='talkha-mansora', city=city, user=user)
 
     def test_user_register_api(self):
         """
@@ -34,16 +35,12 @@ class UserTestApi(TestCase):
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        test_response = {
-            "result": {
-                "id": response.data['result']['id'],
-                "user_name": response.data['result']['user_name'],
-                "token": response.data['result']['token']
-            },
-            "message": response.data['message'],
-            "status": response.data['status']
-        }
-        self.assertDictEqual(response.json(), test_response)
+        self.assertEqual(response.data['result']['id'], 2)
+        self.assertEqual(response.data['result']['user_name'], 'mohamd')
+        self.assertEqual(response.data['result']['token'],
+                         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwidXNlcl9uYW1lIjoibW9oYW1kIn0.mz8OjI6q2WAd3_05k8Rbeh_tYeuD7y9YwczBmWgZ1Eg')
+        self.assertEqual(response.data['message'], "Done")
+        self.assertEqual(response.data["status"], True)
 
     def test_user_login_api(self):
         """
@@ -59,17 +56,12 @@ class UserTestApi(TestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        test_response = {
-            "result": {
-                "id": response.data['result']['id'],
-                "user_name": response.data['result']['user_name'],
-                "token": response.data['result']['token']
-            },
-            "message": response.data['message'],
-            "status": response.data['status']
-        }
-        self.assertDictEqual(response.json(), test_response)
+        self.assertEqual(response.data['result']['id'], 1)
+        self.assertEqual(response.data['result']['user_name'], 'omar')
+        self.assertEqual(response.data['result']['token'],
+                         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwidXNlcl9uYW1lIjoib21hciJ9.Sntk_JIEf6-YT_rg5BBjIO_SJVFPS2K4CXeLidZqesw')
+        self.assertEqual(response.data['message'], "Done")
+        self.assertEqual(response.data["status"], True)
 
     def test_user_not_exist_api(self):
         """
