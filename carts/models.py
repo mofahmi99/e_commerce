@@ -9,7 +9,7 @@ class Cart(Timestamps):
     store cart details (order_id - address_id)
     """
     order = models.OneToOneField('orders.Order', on_delete=models.CASCADE, null=True, blank=True)
-    address = models.ForeignKey("addresses.Address", on_delete=models.CASCADE, default=4)
+    address = models.ForeignKey("addresses.Address", on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.id)
