@@ -18,6 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
     branch = serializers.SerializerMethodField()
+    categories = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -32,12 +33,16 @@ class ProductSerializer(serializers.ModelSerializer):
         # item will be sent to calculate_price function in Item model to return item availability
         return instance.get_is_available(instance.branchitem_set.all())
 
-    def get_branch(self, instance):
-        # return item branch details like id and name
-        branch_items = instance.branchitem_set.filter(is_available=True)
-        if branch_items:
-            return branch_items.values('branch_id', 'branch__name')[0]
+    def get_categories(self, instance):
+        # return item category title
+        categories = instance.categories.values('title')
+        if categories:
+            return categories
         return None
+
+    def get_branch(self, instance):
+        # return item branch
+        return instance.get_best_branch(instance.branchitem_set.all())
 
 
 class ProductBranchItemSerializer(serializers.ModelSerializer):
@@ -46,6 +51,7 @@ class ProductBranchItemSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
     branch = serializers.SerializerMethodField()
+    categories = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -60,17 +66,19 @@ class ProductBranchItemSerializer(serializers.ModelSerializer):
         # item will be sent to calculate_price function in Item model to return item availability
         return instance.get_is_available(instance.branchitem_set.all())
 
-    def get_branch(self, instance):
-        # return item branch details like id and name
-        branch_items = instance.branchitem_set.filter(is_available=True).order_by('price')
-        if branch_items:
-            return branch_items.values('branch_id', 'branch__name')[0]
+    def get_categories(self, instance):
+        # return item category title
+        categories = instance.categories.values('title')
+        if categories:
+            return categories
         return None
+
+    def get_branch(self, instance):
+        # return item branch
+        return instance.get_best_price_branch(instance.branchitem_set.all())
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = "__all__"
-
