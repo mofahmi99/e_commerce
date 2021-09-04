@@ -31,7 +31,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         # add extra data to {data dict}
         data['cart'] = self.context.get('cart')
-        data['address_id'] = self.context.get('address_id')
+        data['user_city'] = self.context.get('user_city')
         data['user_id'] = self.context.get('user_id')
         return data
 
@@ -46,14 +46,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         """
         cart = validated_data.get('cart')
         item_id = validated_data.get('item_id')
-        user_id = validated_data.get('user_id')
         updated_quantity = validated_data.get('quantity')
-        address_id = validated_data.get('address_id')
-        # get user city_id to search for branch items in this city
-        user_city = Address.objects.get(id=address_id, user_id=user_id)
-        city_id = user_city.city_id
+        user_city = validated_data.get('user_city')
         # search for branch items
-        branch_items = BranchItem.objects.filter(item_id=item_id, branch__city_id=city_id, is_available=True)
+        branch_items = BranchItem.objects.filter(item_id=item_id, branch__city_id=user_city, is_available=True)
         # checks if there is no item available in user current address raise an exception
         if branch_items:
             # send branch items to calculate_price function to get the best price (min)

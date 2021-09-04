@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from addresses.models import Address
 from carts.api.serializers import CartSerializer, CartItemSerializer
 from carts.models import Cart, CartItem
 
@@ -24,10 +26,12 @@ class CartApi(GenericViewSet):
         user_id = request.user.id
         data = request.data
         address_id = request.query_params["address_id"]
+        # get user city_id to search for branch items in this city
+        user_address = Address.objects.get(id=address_id, user_id=user_id)
+        user_city = user_address.city_id
         # search for an existing cart for this user that hasn't been attached to an order yet if there is no cart a new cart will be created
-        cart, created = Cart.objects.get_or_create(address__user_id=user_id, order=None)
-        serializer = CartItemSerializer(data=data, context={'cart': cart, 'address_id': address_id, 'user_id': user_id,
-                                                            'request': request})
+        cart, created = Cart.objects.get_or_create(address__user_id=user_id, order=None, address=user_address)
+        serializer = CartItemSerializer(data=data, context={'cart': cart, 'user_city': user_city, 'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response({"result": serializer.data, "message": "Done", "status": True},
